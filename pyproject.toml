@@ -27,6 +27,8 @@ test = [
   "pytest>=8.0",
   "pytest-asyncio>=0.23",
   "pytest-cov>=4.0",
+  "mypy>=1.11",
+  "ruff>=0.6",
 ]
 
 [tool.setuptools.packages.find]
@@ -37,24 +39,41 @@ include = ["dirac*"]
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+addopts = "--strict-config --strict-markers"
+xfail_strict = true
+filterwarnings = ["error"]
 
 [tool.unittest]
 testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-src = ["bot.py", "doctor.py", "web", "dirac", "tests"]
+target-version = "py314"
+preview = true
+src = ["bot.py", "doctor.py", "dirac", "tests"]
 
 [tool.ruff.lint]
 # ANN bans untyped defs and (via ANN401) the use of `typing.Any` in
 # annotations, enforcing the "no Any abuse / encapsulate parameters" rule.
 # Any that is genuinely unavoidable at the JSON/transport boundary is allowed
 # only via an explicit, justified `# noqa: ANN401` on the offending line.
-select = ["E", "F", "I", "B", "UP", "ANN"]
+select = ["ALL"]
+# Ignore only formatter-conflicting and documentation-related rules.
+ignore = ["COM812", "CPY001", "D", "DOC", "ISC001", "T201"]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests favour readability over exhaustive annotations.
-"tests/**" = ["ANN"]
+# Allow conventional pytest assertions and literal-heavy fixtures in tests.
+"tests/**" = ["PLR2004", "S101"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"dirac.memory.tools.MemoryToolFacade" = { msg = "Depend on dirac.memory.base.BaseMemory across module boundaries." }
+"dirac.provider.fake.FakeProviderClient" = { msg = "Fake provider clients are for tests and wiring only. Depend on dirac.provider.base.BaseProviderClient." }
+"dirac.provider.ollama.OllamaProviderClient" = { msg = "Depend on dirac.provider.base.BaseProviderClient, not concrete provider clients." }
+"dirac.provider.openai_compatible.OpenAICompatibleProviderClient" = { msg = "Depend on dirac.provider.base.BaseProviderClient, not concrete provider clients." }
+"dirac.provider.openrouter.OpenRouterProviderClient" = { msg = "Depend on dirac.provider.base.BaseProviderClient, not concrete provider clients." }
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
@@ -63,11 +82,22 @@ force-sort-within-sections = true
 # Strict typing is the blocking gate. `--strict` already enables
 # disallow_untyped_defs, disallow_any_generics, warn_return_any,
 # no_implicit_optional, and friends; they are restated here for visibility.
-files = ["*"]
+# Python quality gate scope.
+files = ["bot.py", "doctor.py", "dirac", "tests"]
+python_version = "3.14"
 strict = true
+disallow_any_unimported = true
+disallow_any_expr = true
+disallow_any_decorated = true
+disallow_any_explicit = true
+disallow_subclassing_any = true
 disallow_untyped_defs = true
 disallow_any_generics = true
 warn_return_any = true
 no_implicit_optional = true
+no_implicit_reexport = true
 warn_unused_ignores = true
 warn_redundant_casts = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true

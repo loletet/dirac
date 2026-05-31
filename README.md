@@ -205,6 +205,17 @@ Domain modules ask Config for typed settings. They do not read raw config files 
 - New dependencies are allowed when they remove complexity and stay behind a module boundary.
 - Tests use fake providers, fake memory, fake logs, and fake clocks where practical.
 
+## Contributor quality gate
+
+`pytest` is configured as a fail-fast project gate. Before test collection starts, it now runs:
+
+- `ruff check .`
+- `ruff format --check .`
+- `mypy --config-file pyproject.toml`
+- architecture checks for duplicate module bodies and forbidden cross-owner imports of concrete provider/memory implementations
+
+If any gate fails, pytest exits immediately and no tests are collected. This keeps encapsulation and typing violations from being discovered only after behavioral tests run.
+
 ## Migration rule
 
 Keep the legacy code available only as a behavior reference until the replacement reaches parity. Do not copy its architecture. Do not add new features to the old large file. Extract behavior into modules by contract, then delete the old path once the replacement owns that behavior.
