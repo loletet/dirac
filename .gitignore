@@ -14,3 +14,4 @@ runtime/
 local-state/
 web/node_modules/
 web/dist/
+dirac.egg-info/*
